@@ -1,0 +1,14 @@
+msg_classes: [
+  unknown, gaming, advice, stories, support, engineering, economics, business, history,
+  language, law, medicine, psychology, science, books, movies, music, sports, job,
+  outdoors, lifestyle, humor, craft, politics, literature, programming, technology,
+  travel, hobby, fashion, food, religion, relationship, animals, geography
+]
+
+msg_classification_prompt: |
+  Categorize text into predefined classes: {msg_classes}, if you can't categorize the text, return "unknown".
+  Don't offer any classes other than the above list.
+
+  Input Data: `{msg_text}`
+
+  Output Format: Provide only one word as an answer, without punctuation and tags, all lowercase.
