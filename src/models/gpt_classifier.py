@@ -8,7 +8,7 @@ from src.config import GPT_VERSION, OPENAI_API_KEY, OPENAI_OPTIONS
 
 
 class GptClassifier:
-    """categorizingA class for categorizing messages using the OpenAI GPT model.
+    """A class for categorizing messages using the OpenAI GPT model.
 
     Attributes:
         client: An instance of AsyncOpenAI for interacting with the OpenAI API.
@@ -37,7 +37,7 @@ class GptClassifier:
             print(f'Key not found in config file: {e}')
             raise
         except OpenAIError as e:
-            logger.exception('Error during OpenAI client initialization: {e}')
+            logger.exception(f'Error during OpenAI client initialization: {e}')
             raise
         except Exception as e:
             print(f'An unexpected error occurred: {e}')
