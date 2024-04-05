@@ -3,5 +3,7 @@ __pycache__
 .idea
 *.env
 *env
+*.session
+*.session*
 /venv/
-run_local_test_bot.sh
+run_local_bot.sh

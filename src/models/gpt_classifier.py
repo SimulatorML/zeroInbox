@@ -5,6 +5,7 @@ import yaml
 from loguru import logger
 from openai import AsyncOpenAI, OpenAIError
 from src.config import GPT_VERSION, OPENAI_API_KEY, OPENAI_OPTIONS
+from database.controller import MsgData
 
 
 class GptClassifier:
@@ -43,16 +44,16 @@ class GptClassifier:
             print(f'An unexpected error occurred: {e}')
             raise
 
-    async def predict(self, messages: List[str]) -> List[dict]:
+    async def predict(self, messages: List[MsgData]) -> List[dict]:
         """Predict the class of input messages.
 
         Args:
-            messages: A list of strings representing messages to classify.
+            messages: A list of objects(MsgData) representing messages to classify.
 
         Returns:
             A list of dictionaries for every message of the following structure:
             {
-                "message": str or None,     # Message for categorization
+                "message": MsgData,
                 "msg_class": str or None,   # Predicted message class or None if not classified
                 "process_status": str,      # Process status, including any errors or warnings.
                 "prompt_tokens": int,       # Number of tokens used in the prompt
@@ -61,16 +62,7 @@ class GptClassifier:
             }
         """
         if not messages:
-            return [
-                {
-                    "message": None,
-                    "msg_class": None,
-                    "process_status": "Empty input.",
-                    "prompt_tokens": 0,
-                    "completion_tokens": 0,
-                    "time_spent": 0
-                }
-            ]
+            return []
 
         # create task for each message
         tasks = [self._predict_message(msg) for msg in messages]
@@ -96,7 +88,7 @@ class GptClassifier:
 
         return prompt
 
-    async def _predict_message(self, message: str) -> dict:
+    async def _predict_message(self, message: MsgData) -> dict:
         """Predict the class of a single message.
 
         Args:
@@ -117,7 +109,7 @@ class GptClassifier:
         completion_tokens = 0
 
         # crop long message
-        text = message[:1024]
+        text = message.msg_text[:1024]
 
         prompt = self._create_prompt(text)
 
@@ -158,7 +150,7 @@ class GptClassifier:
             logger.exception(process_status)
 
         return {
-            'message': text,
+            'message': message,
             'msg_class': pred_msg_class,
             'process_status': process_status,
             'prompt_tokens': prompt_tokens,
