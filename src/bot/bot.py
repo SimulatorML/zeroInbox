@@ -2,24 +2,38 @@ import logging
 import asyncio
 from aiogram import Bot, Dispatcher
 from src.models.gpt_classifier import GptClassifier
-from src.bot.handlers import auth, messages, commands
-from src.config import TEST_BOT_TOKEN
+from src.bot.handlers import auth, commands
+from src.config import BOT_TOKEN, DB_PARAMS
+from database.pg_connector import PgConnector
 
-class TestCatBot:
-    """A class representing a test bot for checking the categorization of Telegram messages."""
+class CatBot:
+    """
+    A Telegram bot that categorizes messages using a GPT-based classifier.
+
+    Attributes:
+        bot (Bot): An instance of the aiogram Bot class, initialized with the bot's token.
+        dp (Dispatcher): An instance of the aiogram Dispatcher class, used to manage event handlers.
+        classifier (GptClassifier): An instance of a GPT-based classifier for categorizing messages.
+    """
     def __init__(self):
-        """Initializes the TestBot instance."""
-        self.bot = Bot(token=TEST_BOT_TOKEN)
+        """Initializes the CatBot instance."""
+        self.bot = Bot(token=BOT_TOKEN)
         self.dp = Dispatcher()
         self.classifier = GptClassifier()
 
+        try:
+            self.db_conn = PgConnector(**DB_PARAMS)
+        except Exception as e:
+            raise RuntimeError(f'Database connection error: {e}')
+
+
     async def start(self):
-        """Starts the bot's event loop for handling messages and commands."""
-        self.dp.include_routers(auth.router, commands.router, messages.router)
+        """Initializes the bot's command routers and starts polling for updates."""
+        self.dp.include_routers(commands.router, auth.router)
         await self.dp.start_polling(self.bot, classifier = self.classifier)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    bot = TestCatBot()
+    bot = CatBot()
     asyncio.run(bot.start())

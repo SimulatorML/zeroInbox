@@ -15,9 +15,14 @@ pip install -r requirements.txt
 ```
 
 ### 3. Set up environment variables:
-Before running the bot, you'll need to set up two global environment variables:
-* OPENAI_API_KEY: Your OpenAI API key. You can get one by signing up at OpenAI.
-* TEST_BOT_TOKEN: Your Telegram bot token. You can create a new bot and get the token from the BotFather.
+Before running the bot, you'll need to set up global environment variables:
+* `OPENAI_API_KEY`: Your OpenAI API key. You can get one by signing up at OpenAI.
+* `BOT_TOKEN`: Your Telegram bot token. You can create a new bot and get the token from the BotFather.
+* `db_host`: The hostname or IP address of the machine where your PostgreSQL database server is running.
+* `db_name`: The name of the PostgreSQL database that your bot will connect to.
+* `db_port`: The port number on which your PostgreSQL server is listening.
+* `db_user`: The username that your bot will use to authenticate with the PostgreSQL database.
+* `db_pwd`: The password associated with the db_user for accessing the PostgreSQL database.
 
 You can set these variables in your system's environment variables or use a tool like dotenv to load them from a file.
 
@@ -31,9 +36,9 @@ msg_classes: <messages categories: List[str]>
 msg_classification_prompt: <prompt template: str>
 ```
 
-### 5. Run the test bot:
+### 5. Run the bot:
 ```bash
-./run_test_bot.sh
+./run_bot.sh
 ```
 
 ## Usage
