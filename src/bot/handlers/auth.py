@@ -109,7 +109,20 @@ async def process_phone_number(message: Message, state: FSMContext):
         return
 
     if not await conn.session.is_user_authorized():
-        phone_code_hash = await conn.send_code()
+        result, phone_code_hash, msg = await conn.send_code()
+
+        if result != 0:
+            await state.clear()
+
+            err_message = [
+                f'<b>Ошибка отправки кода подтверждения</b> - {msg}',
+                '',
+                'Выполните повторно команду /sign_in и введите корректные реквизиты пользователя.'
+            ]
+
+            await message.answer('\n'.join(err_message), parse_mode="HTML",)
+
+            return
 
         await state.update_data(phone_code_hash=phone_code_hash)
         await message.reply('Введите полученный код подтверждения с префиксом "z", (пример z12345):')
