@@ -43,12 +43,9 @@ async def classify_messages(message: Message, state: FSMContext, classifier: Gpt
 
     user_id = user_data['api_hash']
 
-    await message.bot.send_chat_action(message.chat.id, action="typing")
-
     # TODO: add progress bar for process
+    await message.answer('Чтение сообщений пользователя ...')
     x, messages = await conn.get_messages()
-
-    await message.bot.send_chat_action(message.chat.id, action="typing")
 
     if x != 0:
         await message.answer('Ошибка чтения сообщений пользователя')
@@ -57,6 +54,8 @@ async def classify_messages(message: Message, state: FSMContext, classifier: Gpt
     if len(messages) == 0:
         await message.answer('Список сообщений пользователя пуст')
 
+    # TODO: add progress bar for process
+    await message.answer('Проверка необработанных сообщений ...')
     x, unprocessed_messages = controller._get_unprocessed_messages(user_id, messages)
 
     if x != 0:
@@ -67,6 +66,7 @@ async def classify_messages(message: Message, state: FSMContext, classifier: Gpt
         return
 
     # TODO: add progress bar for process
+    await message.answer('Категоризация сообщений ...')
     response = await classifier.predict(unprocessed_messages[:4])
 
     processed_messages = []

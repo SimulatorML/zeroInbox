@@ -85,18 +85,23 @@ class TgConnector:
             return 3, e.args[0]
 
 
-    async def send_code(self) -> str:
+    async def send_code(self) -> Tuple[int, str, str]:
         """
         Sends a code to the user's phone number for authentication.
 
         Returns:
-            str: The phone code hash required for the sign_in method.
+            Tuple[int, str]: A tuple containing the status code (0 for success, non-zero for error),
+            the status message and the phone_code_hash.
         """
-        sent_code_instance = await self.session.send_code_request(self.phone_number)
-        phone_code_hash = sent_code_instance.phone_code_hash
+        try:
+            sent_code_instance = await self.session.send_code_request(self.phone_number)
+            phone_code_hash = sent_code_instance.phone_code_hash
 
-        return phone_code_hash
-
+            return 0, 'OK', phone_code_hash
+        except ApiIdInvalidError:
+            return 1, '', 'The api_id/api_hash combination is invalid'
+        except Exception as e:
+            return 2, '', e.args[0]
 
     async def sign_in(self, phone_code_hash, conf_code) -> Tuple[int, str]:
         """Signs in the user using the code sent to their phone number.
@@ -126,7 +131,7 @@ class TgConnector:
         except PhoneCodeExpiredError:
             return 2, 'The confirmation code has expired'
         except Exception as e:
-            return 2, e.args[0]
+            return 3, e.args[0]
 
 
     async def get_messages(self, limit = None) -> Tuple[int, List[MsgData]]:
