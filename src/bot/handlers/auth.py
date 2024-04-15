@@ -109,7 +109,7 @@ async def process_phone_number(message: Message, state: FSMContext):
         return
 
     if not await conn.session.is_user_authorized():
-        result, phone_code_hash, msg = await conn.send_code()
+        result, msg, phone_code_hash = await conn.send_code()
 
         if result != 0:
             await state.clear()

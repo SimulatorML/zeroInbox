@@ -90,7 +90,7 @@ class TgConnector:
         Sends a code to the user's phone number for authentication.
 
         Returns:
-            Tuple[int, str]: A tuple containing the status code (0 for success, non-zero for error),
+            Tuple[int, str str]: A tuple containing the status code (0 for success, non-zero for error),
             the status message and the phone_code_hash.
         """
         try:
