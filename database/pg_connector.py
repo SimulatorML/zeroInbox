@@ -11,36 +11,6 @@ class PgConnector:
     Attributes:
         _instance (PgConnector): Singleton instance of PgConnector.
         _connection_pool (psycopg2.pool.SimpleConnectionPool): Connection pool for managing database connections.
-
-    Example of use:
-        conn = PgConnector(host='', database='', port=5432, user='', password='')
-
-        query = '''
-            insert into zib.messages(user_id, msg_id, msg_text, category)
-            values(%(user_id)s, %(msg_id)s, %(msg_text)s, %(category)s)
-        '''
-
-        params = {
-            'user_id': '1',
-            'msg_id': '1',
-            'msg_text': 'test',
-            'category': 'test'
-        }
-
-        conn.save_data(query, params)
-
-        query = '''
-            select *
-            from zib.messages
-            where category=%(category)s
-        '''
-
-        params = {
-            'category': 'test'
-        }
-
-        messages = conn.get_data(query, params)
-
     """
     _instance = None
     _connection_pool = None
