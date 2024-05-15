@@ -17,7 +17,7 @@ pip install -r requirements.txt
 ### 3. Set up a PostgreSQL Database:
 To use the bot, you need to set up a PostgreSQL database and create a tables to store categorized messages. Follow these steps to initialize your database:
 * `Install PostgreSQL`: If you haven't already, install PostgreSQL on your system. You can download the installer for your operating system from the [official PostgreSQL website](https://www.postgresql.org/download/).
-* `Install pgvector extension` This extension is crucial for the operations of this bot, particularly for managing vector-based data efficiently.
+* `Install pgvector extension` The extension is required to store embeddings and perform cosine searches between them [[how to install](https://github.com/pgvector/pgvector?tab=readme-ov-file#installation)].
 * `Create a PostgreSQL Database:`: Connect to the PostgreSQL server and create a new database for the project `>>> create database <database_name>;`.
 * `Create a Database User (Optional)`: You can create a dedicated database user for the CatBot project with limited permissions. This step is optional but recommended for security reasons. Run the following command in the PostgreSQL shell to create a new user `>>> create user <user_name> with password '<password>';`
 * `Create the Tables`: Once connected, create a necessary tables using the `init_db.sql` script located in `database` folder. Run the following command in the PostgreSQL shell `>>> \i path/to/init_db.sql;`
