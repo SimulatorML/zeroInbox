@@ -5,7 +5,7 @@ You can obtain an API key by signing up at https://platform.openai.com/signup.
 from typing import List, Dict
 import asyncio
 from src.models.gpt_classifier import GptClassifier
-from database.controller import MsgData
+from database.topic_controller import MsgData
 
 
 async def run(msg_classifier: GptClassifier, msg_list: List[MsgData]) -> List[Dict]:
