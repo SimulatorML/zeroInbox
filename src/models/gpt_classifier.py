@@ -1,11 +1,11 @@
-from typing import List
+from typing import List, Dict
 import asyncio
 import time
 import yaml
 from loguru import logger
 from openai import AsyncOpenAI, OpenAIError
 from src.config import GPT_VERSION, OPENAI_API_KEY, OPENAI_OPTIONS
-from database.controller import MsgData
+from database.msg_controller import MsgData
 
 
 class GptClassifier:
@@ -17,7 +17,7 @@ class GptClassifier:
         msg_classes: A dictionary mapping message classes to their respective prompts.
         prompt_template: A string template for generating prompts.
     """
-    def __init__(self):
+    def __init__(self, msg_classes: List[str]):
         """Initialize the GptClassifier."""
         try:
             self.client = AsyncOpenAI(api_key=OPENAI_API_KEY)
@@ -26,7 +26,7 @@ class GptClassifier:
             with open('prompts.yml', 'r', encoding='utf-8') as f:
                 prompt_config = yaml.safe_load(f)
 
-            self.msg_classes = prompt_config['msg_classes']
+            self.msg_classes = msg_classes
             self.prompt_template = prompt_config['msg_classification_prompt']
         except FileNotFoundError as e:
             print(f'Config file not found: {e}')
@@ -44,7 +44,7 @@ class GptClassifier:
             print(f'An unexpected error occurred: {e}')
             raise
 
-    async def predict(self, messages: List[MsgData]) -> List[dict]:
+    async def predict(self, messages: List[MsgData]) -> List[Dict]:
         """Predict the class of input messages.
 
         Args:
@@ -88,7 +88,7 @@ class GptClassifier:
 
         return prompt
 
-    async def _predict_message(self, message: MsgData) -> dict:
+    async def _predict_message(self, message: MsgData) -> Dict:
         """Predict the class of a single message.
 
         Args:
