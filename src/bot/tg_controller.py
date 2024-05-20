@@ -22,6 +22,7 @@ class TgController:
         """
         user_id = message.from_user.id
         chat_id = message.chat.id
+        topic_name = topic_name.strip().lower()
 
         topic_id = db_controller.get_topic_id(user_id, chat_id, topic_name)
 
@@ -63,6 +64,9 @@ class TgController:
         """
         user_id = message.from_user.id
         chat_id = message.chat.id
+
+        curr_topic_name = curr_topic_name.strip().lower()
+        new_topic_name = new_topic_name.strip().lower()
 
         curr_topic_id = db_controller.get_topic_id(user_id, chat_id, curr_topic_name)
 
@@ -112,6 +116,7 @@ class TgController:
         """
         user_id = message.from_user.id
         chat_id = message.chat.id
+        topic_name = topic_name.strip().lower()
 
         topic_id = db_controller.get_topic_id(user_id, chat_id, topic_name)
 
@@ -154,6 +159,7 @@ class TgController:
         user_id = message.from_user.id
         chat_id = message.chat.id
         message_id = message.message_id
+        topic_name = topic_name.strip().lower()
 
         topic_id = db_controller.get_topic_id(user_id, chat_id, topic_name)
 
@@ -289,8 +295,6 @@ class TgController:
         msg_emb = embedder.model.encode(msg_pattern.lower().strip())
 
         sim_messages = msg_controller.search_sim_messages(user_id, chat_id, msg_emb, top_k)
-
-        print(sim_messages)
 
         if sim_messages is None:
             await message.answer('Ошибка определения похожих сообщений')

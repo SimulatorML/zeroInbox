@@ -26,7 +26,7 @@ class UserTopicController:
         query = '''
             select topic_id
             from zib.user_topics
-            where user_id=%(user_id)s and chat_id=%(chat_id)s and topic_name=%(topic_name)s;
+            where user_id=%(user_id)s and chat_id=%(chat_id)s and lower(topic_name)=lower(%(topic_name)s);
         '''
 
         params = {
@@ -61,7 +61,7 @@ class UserTopicController:
         conn = PgConnector(**DB_PARAMS)
 
         query = '''
-            select topic_id, topic_name
+            select topic_id, lower(topic_name) as topic_name
             from zib.user_topics
             where user_id=%(user_id)s and chat_id=%(chat_id)s;
         '''
@@ -100,7 +100,7 @@ class UserTopicController:
         """
         query = '''
             insert into zib.user_topics(user_id, chat_id, topic_id, topic_name)
-            values(%(user_id)s, %(chat_id)s, %(topic_id)s, %(topic_name)s) on conflict do nothing;
+            values(%(user_id)s, %(chat_id)s, %(topic_id)s, lower(%(topic_name)s)) on conflict do nothing;
         '''
 
         conn = PgConnector(**DB_PARAMS)
@@ -132,7 +132,7 @@ class UserTopicController:
         """
         query = '''
             update zib.user_topics
-                set topic_name=%(new_topic_name)s
+                set topic_name=lower(%(new_topic_name)s)
             where user_id=%(user_id)s and chat_id=%(chat_id)s and topic_id=%(topic_id)s;
         '''
 
