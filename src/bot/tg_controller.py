@@ -30,8 +30,10 @@ class TgController:
             await message.answer(f'Ошибка проверки идентификатора темы "{topic_name}"')
             return
 
-        if topic_id != 0 and topic_name != 'unknown':
-            await message.answer(f'Тема "{topic_name}" уже существует')
+        if topic_id != 0:
+            if topic_name != 'unknown':
+                await message.answer(f'Тема "{topic_name}" уже существует')
+
             return
 
         try:
