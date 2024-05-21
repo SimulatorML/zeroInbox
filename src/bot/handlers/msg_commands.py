@@ -1,5 +1,7 @@
+from typing import List
 from aiogram import Router, F
 from aiogram.types import Message
+from aiogram_media_group import media_group_handler
 from src.models.gpt_classifier import GptClassifier
 from src.bot.tg_controller import TgController as tg_controller
 from sentence_transformers import SentenceTransformer
@@ -18,6 +20,15 @@ async def handle_new_text_message(message: Message, embedder: SentenceTransforme
         if result:
             await tg_controller.move_message(message, category)
 
+@router.message(F.media_group_id, F.content_type == 'photo')
+@media_group_handler
+async def handle_albums(messages: List[Message]):
+    """
+    Handles albums of photos in a chat. Moves each photo message in the album to a predefined category.
+    """
+    for msg in messages:
+        if not msg.is_topic_message:
+            await tg_controller.move_message(msg, 'photo')
 
 @router.message()
 async def handle_new_message(message: Message):
