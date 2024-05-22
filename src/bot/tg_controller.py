@@ -212,7 +212,7 @@ class TgController:
     @staticmethod
     async def move_media_group_message(messages: Message, topic_name: str):
         """
-        Moves a message to a specified topic within a Telegram group chat. If the topic does not exist,
+        Moves a message containing media group to a specified topic within a Telegram group chat. If the topic does not exist,
         it creates a new topic and adds the message to it. It also handles the deletion of the original message
         after it's successfully moved.
 
@@ -308,7 +308,6 @@ class TgController:
             msg_text = extract_text_from_url(msg_text)
 
         msg_text = msg_text.lower().strip()
-        print(msg_text)
 
         curr_topics = db_controller.get_user_topics(user_id, chat_id)
 
