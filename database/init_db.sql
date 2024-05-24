@@ -3,6 +3,8 @@
 
 create schema zib;
 
+create extension vector;
+
 -- user_topics: table
 create table zib.user_topics(
     user_id int default 0 not null,

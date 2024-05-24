@@ -1,9 +1,16 @@
+import re
 from typing import Tuple, List
 from aiogram.types import Message
+from aiogram import types
 from src.models.gpt_classifier import GptClassifier
+from src.utils.utils import extract_text_from_url, extract_description_from_yt
 from database.topic_controller import UserTopicController as db_controller
 from database.msg_controller import MsgData, MsgController as msg_controller
 from sentence_transformers import SentenceTransformer
+
+link_pattern = re.compile(r"((http|https)\:\/\/)?[а-яА-Яa-zA-Z0-9\.\/\?\:@\-_=#]+\.([а-яА-Яa-zA-Z]){2,6}([а-яА-Яa-zA-Z0-9\.\&\/\?\:@\-_=#])*")
+yt_pattern = re.compile(r"http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?")
+
 
 class TgController:
     """
@@ -203,6 +210,73 @@ class TgController:
             await message.reply(f'Ошибка перемещения сообщения: {str(e)}')
 
     @staticmethod
+    async def move_media_group_message(messages: Message, topic_name: str):
+        """
+        Moves a message containing media group to a specified topic within a Telegram group chat. If the topic does not exist,
+        it creates a new topic and adds the message to it. It also handles the deletion of the original message
+        after it's successfully moved.
+
+        Args:
+            message (Message): The Telegram message object that needs to be moved.
+            topic_name (str): The name of the topic to which the message should be moved.
+
+        Responds with error messages if there are issues with topic verification, topic creation, message copying, or message deletion.
+        """
+        user_id = messages[-1].from_user.id
+        chat_id = messages[-1].chat.id
+        topic_name = topic_name.strip().lower()
+
+        topic_id = db_controller.get_topic_id(user_id, chat_id, topic_name)
+
+        if topic_id is None:
+            await messages[-1].answer(f'Ошибка проверки идентификатора темы "{topic_name}"')
+            return
+
+        if topic_id == 0:
+            try:
+                topic = await messages[-1].bot.create_forum_topic(chat_id=chat_id, name=topic_name)
+
+                if not topic:
+                    await messages[-1].answer(f'Ошибка добавления в чат темы "{topic_name}"')
+                    return
+
+                topic_id = topic.message_thread_id
+
+                db_result = db_controller.add_topic(user_id, chat_id, topic_id, topic_name)
+
+                if db_result != 0:
+                    await messages[-1].answer(f'Ошибка сохранения в БД темы "{topic_name}"')
+                    return
+            except Exception as e:
+                await messages[-1].answer(f"Ошибка создания новой темы: {str(e)}")
+                return
+
+        # copy & delete source message
+        try:
+            msg = await messages[-1].bot.send_media_group(
+                media=[
+                    types.InputMediaPhoto(
+                        media=message.photo[-1].file_id,
+                        caption=message.caption,
+                        caption_entities=message.caption_entities,
+                    )
+                    for message in messages
+                ],
+                chat_id=messages[-1].chat.id,
+                message_thread_id=topic_id,
+            )
+
+            if msg:
+                del_result = all([await message.bot.delete_message(chat_id=chat_id, message_id=message.message_id) for message in messages])
+
+                if not del_result:
+                    messages[-1].answer('Ошибка удаления исходного сообщения')
+            else:
+                messages[-1].answer(f'Ошибка копирования сообщения в тему "{topic_name}"')
+        except Exception as e:
+            await messages[-1].reply(f'Ошибка перемещения сообщения: {str(e)}')
+
+    @staticmethod
     async def classify_message(message: Message, embedder: SentenceTransformer, classifier: GptClassifier) -> Tuple[bool, str]:
         """
         Classifies the content of a message using a SentenceTransformer model for embedding and a GPT classifier
@@ -223,7 +297,17 @@ class TgController:
         user_id = message.from_user.id
         chat_id = message.chat.id
         msg_id = message.message_id
-        msg_text=message.text.lower().strip()
+        if message.text:
+            msg_text = message.text
+        if message.caption:
+            msg_text = message.caption
+
+        if yt_pattern.match(msg_text):
+            msg_text = extract_description_from_yt(msg_text)
+        elif link_pattern.match(msg_text):
+            msg_text = extract_text_from_url(msg_text)
+
+        msg_text = msg_text.lower().strip()
 
         curr_topics = db_controller.get_user_topics(user_id, chat_id)
 

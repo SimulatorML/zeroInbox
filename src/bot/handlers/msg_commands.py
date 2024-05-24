@@ -1,5 +1,5 @@
 from typing import List
-from aiogram import Router, F
+from aiogram import Router, F, types
 from aiogram.types import Message
 from aiogram_media_group import media_group_handler
 from src.models.gpt_classifier import GptClassifier
@@ -20,21 +20,41 @@ async def handle_new_text_message(message: Message, embedder: SentenceTransforme
         if result:
             await tg_controller.move_message(message, category)
 
-@router.message(F.media_group_id, F.content_type == 'photo')
-@media_group_handler
-async def handle_albums(messages: List[Message]):
-    """
-    Handles albums of photos in a chat. Moves each photo message in the album to a predefined category.
-    """
-    for msg in messages:
-        if not msg.is_topic_message:
-            await tg_controller.move_message(msg, 'photo')
 
-@router.message()
-async def handle_new_message(message: Message):
+@router.message(F.media_group_id, F.content_type.in_({'photo'}))
+@media_group_handler
+async def handle_new_media_group_message(messages: List[types.Message], embedder: SentenceTransformer, classifier: GptClassifier):
     """
-    Handles new messages that are not topic-specific by moving them based on their content type.
-    This is used for non-text messages like images, audio, etc.
+    Handles new text messages containing photo media group in a chat.
+    If the message is not a topic message, it classifies the message using the provided embedder and classifier,
+    and if successfully classified, moves the message to the appropriate category.
+    If there is no caption or text, the message is assumed to have 'photo' category.
+    """
+    if not messages[0].is_topic_message:
+        if not (messages[0].caption or messages[0].text):
+            await tg_controller.move_media_group_message(messages, messages[0].content_type)
+            return
+        else:
+            result, category = await tg_controller.classify_message(messages[0], embedder, classifier)
+
+        if result:
+            await tg_controller.move_media_group_message(messages, category)
+
+
+@router.message(F.content_type.in_({'photo', 'video', 'document'}))
+async def handle_new_photo_message(message: Message, embedder: SentenceTransformer, classifier: GptClassifier):
+    """
+    Handles new messages containing photo, video or document (not media groups) in a chat.
+    If the message is not a topic message, it classifies the message using the provided embedder and classifier,
+    and if successfully classified, moves the message to the appropriate category.
+    If there is no caption or text, the message is assumed to have category corresponding to the content type.
     """
     if not message.is_topic_message:
-        await tg_controller.move_message(message, message.content_type)
+        if not (message.caption or message.text):
+            await tg_controller.move_message(message, message.content_type)
+            return
+        else:
+            result, category = await tg_controller.classify_message(message, embedder, classifier)
+
+        if result:
+            await tg_controller.move_message(message, category)
